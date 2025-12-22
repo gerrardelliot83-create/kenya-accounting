@@ -57,3 +57,6 @@ frontend/dist/
 # Local development
 *.bak
 *.backup
+
+# Issue tracking (local only)
+Issues/

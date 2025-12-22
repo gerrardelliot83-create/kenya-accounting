@@ -423,15 +423,15 @@ class ApiClient {
 
   // FAQ & Help Articles endpoints
   async getFaqCategories(): Promise<FaqCategory[]> {
-    const response = await this.client.get<FaqCategory[]>('/support/faq/categories');
-    return response.data;
+    const response = await this.client.get<{ categories: FaqCategory[]; total: number }>('/support/faq/categories');
+    return response.data.categories || [];
   }
 
   async getFaqArticles(categoryId?: string): Promise<FaqArticle[]> {
-    const response = await this.client.get<FaqArticle[]>('/support/faq', {
+    const response = await this.client.get<{ articles: FaqArticle[]; total: number }>('/support/faq', {
       params: categoryId ? { category_id: categoryId } : undefined,
     });
-    return response.data;
+    return response.data.articles || [];
   }
 
   async searchFaq(data: FaqSearchRequest): Promise<FaqSearchResponse> {
@@ -445,8 +445,8 @@ class ApiClient {
   }
 
   async getHelpArticles(): Promise<HelpArticle[]> {
-    const response = await this.client.get<HelpArticle[]>('/support/articles');
-    return response.data;
+    const response = await this.client.get<{ articles: HelpArticle[]; total: number }>('/support/articles');
+    return response.data.articles || [];
   }
 
   async getHelpArticle(slug: string): Promise<HelpArticle> {

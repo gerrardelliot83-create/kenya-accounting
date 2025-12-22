@@ -217,7 +217,7 @@ export const InvoiceFormPage = () => {
                     </FormControl>
                     <SelectContent>
                       {contactsData?.contacts
-                        .filter((c) => c.contactType === 'customer' || c.contactType === 'both')
+                        .filter((c) => c.id && (c.contactType === 'customer' || c.contactType === 'both'))
                         .map((contact) => (
                           <SelectItem key={contact.id} value={contact.id}>
                             {contact.name}
@@ -290,22 +290,29 @@ export const InvoiceFormPage = () => {
                       <TableRow key={field.id}>
                         <TableCell>
                           <Select
-                            value={selectedItemIds[index] || ''}
+                            value={selectedItemIds[index] || '_none'}
                             onValueChange={(value) => {
-                              handleItemSelect(index, value);
-                              form.setValue(`lineItems.${index}.itemId`, value);
+                              if (value === '_none') {
+                                setSelectedItemIds({ ...selectedItemIds, [index]: '' });
+                                form.setValue(`lineItems.${index}.itemId`, '');
+                              } else {
+                                handleItemSelect(index, value);
+                                form.setValue(`lineItems.${index}.itemId`, value);
+                              }
                             }}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select item" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">None</SelectItem>
-                              {itemsData?.items.map((item) => (
-                                <SelectItem key={item.id} value={item.id}>
-                                  {item.name}
-                                </SelectItem>
-                              ))}
+                              <SelectItem value="_none">None</SelectItem>
+                              {itemsData?.items
+                                .filter((item) => item.id)
+                                .map((item) => (
+                                  <SelectItem key={item.id} value={item.id}>
+                                    {item.name}
+                                  </SelectItem>
+                                ))}
                             </SelectContent>
                           </Select>
                         </TableCell>
