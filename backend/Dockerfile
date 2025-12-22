@@ -1,7 +1,7 @@
 # Python FastAPI with WeasyPrint dependencies
 FROM python:3.11-slim-bookworm
 
-# Install system dependencies for WeasyPrint
+# Install system dependencies for WeasyPrint and bcrypt
 RUN apt-get update && apt-get install -y \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     libcairo2 \
     fonts-liberation \
+    gcc \
+    libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
