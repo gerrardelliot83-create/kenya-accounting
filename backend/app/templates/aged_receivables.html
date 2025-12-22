@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aged Receivables Report</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 2cm;
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 100%;
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .report-title {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .company-name {
+            font-size: 16pt;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .report-date {
+            font-size: 11pt;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .company-details {
+            font-size: 9pt;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        /* Summary Cards */
+        .summary-cards {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            gap: 15px;
+        }
+
+        .card {
+            flex: 1;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .card.total {
+            background-color: #d1ecf1;
+            border: 2px solid #3498db;
+        }
+
+        .card.overdue {
+            background-color: #f8d7da;
+            border: 2px solid #e74c3c;
+        }
+
+        .card.current {
+            background-color: #d4edda;
+            border: 2px solid #28a745;
+        }
+
+        .card h3 {
+            font-size: 10pt;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .card .amount {
+            font-size: 18pt;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .card.total .amount { color: #3498db; }
+        .card.overdue .amount { color: #e74c3c; }
+        .card.current .amount { color: #28a745; }
+
+        .card .percentage {
+            font-size: 11pt;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        /* Aging Buckets */
+        .section {
+            margin: 30px 0;
+        }
+
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2c3e50;
+        }
+
+        table.aging {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table.aging thead {
+            background-color: #3498db;
+            color: white;
+        }
+
+        table.aging th {
+            padding: 12px 10px;
+            text-align: left;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+
+        table.aging th.text-right {
+            text-align: right;
+        }
+
+        table.aging th.text-center {
+            text-align: center;
+        }
+
+        table.aging tbody tr {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        table.aging tbody tr.current-row {
+            background-color: #d4edda;
+        }
+
+        table.aging tbody tr.warning-row {
+            background-color: #fff3cd;
+        }
+
+        table.aging tbody tr.danger-row {
+            background-color: #f8d7da;
+        }
+
+        table.aging tbody tr.critical-row {
+            background-color: #f5c6cb;
+        }
+
+        table.aging td {
+            padding: 12px 10px;
+            font-size: 10pt;
+        }
+
+        table.aging td.text-right {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        table.aging td.text-center {
+            text-align: center;
+        }
+
+        table.aging tfoot {
+            background-color: #2c3e50;
+            color: white;
+            font-weight: bold;
+        }
+
+        table.aging tfoot td {
+            padding: 12px 10px;
+            font-size: 11pt;
+        }
+
+        /* Progress Bar */
+        .percentage-bar {
+            width: 100%;
+            background-color: #e9ecef;
+            height: 20px;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .percentage-fill {
+            height: 100%;
+            background: linear-gradient(to right, #28a745, #ffc107, #e74c3c);
+            transition: width 0.3s ease;
+        }
+
+        .percentage-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 8pt;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Alert Box */
+        .alert {
+            margin: 30px 0;
+            padding: 20px;
+            border-left: 4px solid #e74c3c;
+            background-color: #f8d7da;
+        }
+
+        .alert.warning {
+            border-left-color: #ffc107;
+            background-color: #fff3cd;
+        }
+
+        .alert.info {
+            border-left-color: #17a2b8;
+            background-color: #d1ecf1;
+        }
+
+        .alert h3 {
+            font-size: 12pt;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .alert p {
+            font-size: 10pt;
+            margin: 5px 0;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #dee2e6;
+            text-align: center;
+        }
+
+        .footer p {
+            font-size: 9pt;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="report-title">AGED RECEIVABLES REPORT</div>
+            <div class="company-name">{{ business.business_name }}</div>
+            <div class="report-date">
+                As of {{ report.as_of_date | format_date }}
+            </div>
+            <div class="company-details">
+                KRA PIN: {{ business.kra_pin }} | {{ business.address }}
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="card total">
+                <h3>Total Receivables</h3>
+                <div class="amount">{{ report.total_receivables | format_currency }}</div>
+                <div class="percentage">{{ report.total_invoice_count }} Invoices</div>
+            </div>
+            <div class="card overdue">
+                <h3>Overdue Amount</h3>
+                <div class="amount">{{ report.overdue_amount | format_currency }}</div>
+                <div class="percentage">{{ report.overdue_percentage | format_percentage }} of Total</div>
+            </div>
+            <div class="card current">
+                <h3>Current (Not Due)</h3>
+                <div class="amount">{{ report.current.amount | format_currency }}</div>
+                <div class="percentage">{{ report.current.invoice_count }} Invoices</div>
+            </div>
+        </div>
+
+        <!-- Alert for High Overdue -->
+        {% if report.overdue_percentage > 50 %}
+        <div class="alert">
+            <h3>⚠ High Overdue Alert</h3>
+            <p>Over 50% of your receivables are overdue. Immediate collection action is recommended.</p>
+        </div>
+        {% elif report.overdue_percentage > 30 %}
+        <div class="alert warning">
+            <h3>⚠ Overdue Warning</h3>
+            <p>{{ report.overdue_percentage | format_percentage }} of your receivables are overdue. Consider following up with customers.</p>
+        </div>
+        {% endif %}
+
+        <!-- Aging Buckets -->
+        <div class="section">
+            <div class="section-title">AGING ANALYSIS</div>
+
+            {% if report.total_receivables > 0 %}
+            <table class="aging">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Aging Bucket</th>
+                        <th class="text-center" style="width: 12%;">Invoice Count</th>
+                        <th class="text-right" style="width: 20%;">Amount (KES)</th>
+                        <th class="text-right" style="width: 13%;">Percentage</th>
+                        <th style="width: 30%;">Distribution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="current-row">
+                        <td><strong>{{ report.current.bucket_name }}</strong></td>
+                        <td class="text-center">{{ report.current.invoice_count }}</td>
+                        <td class="text-right">{{ report.current.amount | format_number }}</td>
+                        <td class="text-right"><strong>{{ report.current.percentage | format_percentage }}</strong></td>
+                        <td>
+                            <div class="percentage-bar">
+                                <div class="percentage-fill" style="width: {{ report.current.percentage }}%; background: #28a745;"></div>
+                                <div class="percentage-text">{{ report.current.percentage | format_percentage }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="warning-row">
+                        <td><strong>{{ report.days_1_30.bucket_name }}</strong></td>
+                        <td class="text-center">{{ report.days_1_30.invoice_count }}</td>
+                        <td class="text-right">{{ report.days_1_30.amount | format_number }}</td>
+                        <td class="text-right"><strong>{{ report.days_1_30.percentage | format_percentage }}</strong></td>
+                        <td>
+                            <div class="percentage-bar">
+                                <div class="percentage-fill" style="width: {{ report.days_1_30.percentage }}%; background: #ffc107;"></div>
+                                <div class="percentage-text">{{ report.days_1_30.percentage | format_percentage }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="warning-row">
+                        <td><strong>{{ report.days_31_60.bucket_name }}</strong></td>
+                        <td class="text-center">{{ report.days_31_60.invoice_count }}</td>
+                        <td class="text-right">{{ report.days_31_60.amount | format_number }}</td>
+                        <td class="text-right"><strong>{{ report.days_31_60.percentage | format_percentage }}</strong></td>
+                        <td>
+                            <div class="percentage-bar">
+                                <div class="percentage-fill" style="width: {{ report.days_31_60.percentage }}%; background: #fd7e14;"></div>
+                                <div class="percentage-text">{{ report.days_31_60.percentage | format_percentage }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="danger-row">
+                        <td><strong>{{ report.days_61_90.bucket_name }}</strong></td>
+                        <td class="text-center">{{ report.days_61_90.invoice_count }}</td>
+                        <td class="text-right">{{ report.days_61_90.amount | format_number }}</td>
+                        <td class="text-right"><strong>{{ report.days_61_90.percentage | format_percentage }}</strong></td>
+                        <td>
+                            <div class="percentage-bar">
+                                <div class="percentage-fill" style="width: {{ report.days_61_90.percentage }}%; background: #dc3545;"></div>
+                                <div class="percentage-text">{{ report.days_61_90.percentage | format_percentage }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="critical-row">
+                        <td><strong>{{ report.days_over_90.bucket_name }}</strong></td>
+                        <td class="text-center">{{ report.days_over_90.invoice_count }}</td>
+                        <td class="text-right">{{ report.days_over_90.amount | format_number }}</td>
+                        <td class="text-right"><strong>{{ report.days_over_90.percentage | format_percentage }}</strong></td>
+                        <td>
+                            <div class="percentage-bar">
+                                <div class="percentage-fill" style="width: {{ report.days_over_90.percentage }}%; background: #6c1111;"></div>
+                                <div class="percentage-text">{{ report.days_over_90.percentage | format_percentage }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><strong>TOTAL</strong></td>
+                        <td class="text-center"><strong>{{ report.total_invoice_count }}</strong></td>
+                        <td class="text-right"><strong>{{ report.total_receivables | format_currency }}</strong></td>
+                        <td class="text-right"><strong>100.00%</strong></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+            {% else %}
+            <div class="no-data">No outstanding receivables as of this date</div>
+            {% endif %}
+        </div>
+
+        <!-- Collection Recommendations -->
+        {% if report.overdue_amount > 0 %}
+        <div class="alert info">
+            <h3>Collection Recommendations</h3>
+            <p><strong>Priority 1:</strong> Focus on invoices over 90 days old ({{ report.days_over_90.amount | format_currency }})</p>
+            <p><strong>Priority 2:</strong> Follow up on invoices 61-90 days overdue ({{ report.days_61_90.amount | format_currency }})</p>
+            <p><strong>Priority 3:</strong> Send reminders for invoices 31-60 days overdue ({{ report.days_31_60.amount | format_currency }})</p>
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Note:</strong> This report shows outstanding invoices grouped by days overdue.</p>
+            <p>Aging is calculated from the invoice due date. Current bucket shows invoices not yet due.</p>
+            <p>Generated on {{ generated_at | format_date }} | Currency: KES (Kenya Shillings)</p>
+        </div>
+    </div>
+</body>
+</html>

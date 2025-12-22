@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Receipt</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 100%;
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #27ae60;
+        }
+
+        .receipt-title {
+            font-size: 32pt;
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .company-info {
+            margin: 20px 0;
+        }
+
+        .company-info h1 {
+            font-size: 18pt;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .company-info p {
+            font-size: 9pt;
+            color: #666;
+            margin: 3px 0;
+        }
+
+        /* Receipt Info */
+        .receipt-info {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #27ae60;
+        }
+
+        .receipt-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .receipt-info td {
+            padding: 8px;
+            font-size: 10pt;
+        }
+
+        .receipt-info td:first-child {
+            font-weight: bold;
+            width: 40%;
+            color: #2c3e50;
+        }
+
+        /* Payment Details */
+        .payment-details {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #d4edda;
+            border: 2px solid #27ae60;
+            border-radius: 5px;
+        }
+
+        .payment-details h2 {
+            font-size: 14pt;
+            color: #27ae60;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .payment-amount {
+            text-align: center;
+            font-size: 28pt;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Customer Info */
+        .customer-info {
+            margin: 30px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #2c3e50;
+        }
+
+        .customer-info h3 {
+            font-size: 12pt;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .customer-info p {
+            font-size: 10pt;
+            color: #333;
+            margin: 3px 0;
+        }
+
+        /* Invoice Summary */
+        .invoice-summary {
+            margin: 30px 0;
+        }
+
+        table.summary {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border: 1px solid #dee2e6;
+        }
+
+        table.summary th,
+        table.summary td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        table.summary th {
+            background-color: #2c3e50;
+            color: white;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+
+        table.summary td {
+            font-size: 10pt;
+        }
+
+        table.summary td.text-right {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        table.summary tr.balance-row {
+            background-color: #fff3cd;
+            font-weight: bold;
+        }
+
+        /* Notes */
+        .notes {
+            margin: 30px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+        }
+
+        .notes h4 {
+            font-size: 11pt;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .notes p {
+            font-size: 9pt;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #dee2e6;
+            text-align: center;
+        }
+
+        .footer p {
+            font-size: 9pt;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .footer .thank-you {
+            font-size: 14pt;
+            color: #27ae60;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* Amount Formatting */
+        .amount {
+            font-family: 'Courier New', monospace;
+        }
+
+        .checkmark {
+            color: #27ae60;
+            font-size: 48pt;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="checkmark">✓</div>
+            <div class="receipt-title">PAYMENT RECEIPT</div>
+            <div class="company-info">
+                <h1>{{ business.business_name }}</h1>
+                <p><strong>KRA PIN:</strong> {{ business.kra_pin }}</p>
+                <p>{{ business.address }}</p>
+                {% if business.phone %}<p><strong>Phone:</strong> {{ business.phone }}</p>{% endif %}
+                {% if business.email %}<p><strong>Email:</strong> {{ business.email }}</p>{% endif %}
+            </div>
+        </div>
+
+        <!-- Receipt Info -->
+        <div class="receipt-info">
+            <table>
+                <tr>
+                    <td>Receipt ID:</td>
+                    <td>{{ payment.id }}</td>
+                </tr>
+                <tr>
+                    <td>Payment Date:</td>
+                    <td>{{ payment.payment_date | format_date }}</td>
+                </tr>
+                <tr>
+                    <td>Payment Method:</td>
+                    <td>{{ payment.payment_method }}</td>
+                </tr>
+                {% if payment.reference_number != 'N/A' %}
+                <tr>
+                    <td>Reference Number:</td>
+                    <td>{{ payment.reference_number }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="payment-details">
+            <h2>Payment Received</h2>
+            <div class="payment-amount">{{ payment.amount | format_currency }}</div>
+        </div>
+
+        <!-- Customer Info -->
+        <div class="customer-info">
+            <h3>Received From:</h3>
+            <p><strong>{{ contact.company_name }}</strong></p>
+            {% if contact.address %}
+            <p>{{ contact.address }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Invoice Summary -->
+        <div class="invoice-summary">
+            <table class="summary">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th style="text-align: right;">Amount (KES)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Invoice Number:</strong> {{ invoice.invoice_number }}</td>
+                        <td class="text-right amount">{{ invoice.total_amount | format_number }}</td>
+                    </tr>
+                    <tr>
+                        <td>Total Paid</td>
+                        <td class="text-right amount">{{ invoice.amount_paid | format_number }}</td>
+                    </tr>
+                    <tr class="balance-row">
+                        <td><strong>Balance Due</strong></td>
+                        <td class="text-right amount"><strong>{{ invoice.balance_due | format_number }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Notes -->
+        {% if payment.notes %}
+        <div class="notes">
+            <h4>Payment Notes:</h4>
+            <p>{{ payment.notes }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="footer">
+            <p class="thank-you">Thank you for your payment!</p>
+            <p>This is a computer-generated receipt and does not require a signature.</p>
+            <p>Generated on {{ generated_at | format_date }}</p>
+            <p style="margin-top: 20px; font-size: 8pt; color: #999;">
+                For any queries regarding this payment, please contact us with the receipt ID.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

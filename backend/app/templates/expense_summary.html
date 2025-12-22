@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Summary Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 100%;
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #e74c3c;
+        }
+
+        .report-title {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        .company-name {
+            font-size: 16pt;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .report-period {
+            font-size: 11pt;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .company-details {
+            font-size: 9pt;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        /* Summary Cards */
+        .summary-cards {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            gap: 15px;
+        }
+
+        .card {
+            flex: 1;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+
+        .card h3 {
+            font-size: 10pt;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .card .amount {
+            font-size: 18pt;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #e74c3c;
+        }
+
+        .card .number {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #856404;
+        }
+
+        /* Insights Section */
+        .insights {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .insights h3 {
+            font-size: 12pt;
+            color: #0c5460;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .insights p {
+            font-size: 10pt;
+            color: #0c5460;
+            margin: 8px 0;
+        }
+
+        .insights strong {
+            font-weight: bold;
+        }
+
+        /* Expenses Table */
+        .section {
+            margin: 30px 0;
+        }
+
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2c3e50;
+        }
+
+        table.expenses {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table.expenses thead {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        table.expenses th {
+            padding: 12px 10px;
+            text-align: left;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+
+        table.expenses th.text-right {
+            text-align: right;
+        }
+
+        table.expenses th.text-center {
+            text-align: center;
+        }
+
+        table.expenses tbody tr {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        table.expenses tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        table.expenses tbody tr:hover {
+            background-color: #fff3cd;
+        }
+
+        table.expenses td {
+            padding: 10px;
+            font-size: 10pt;
+        }
+
+        table.expenses td.text-right {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        table.expenses td.text-center {
+            text-align: center;
+        }
+
+        /* Progress Bar */
+        .percentage-bar {
+            width: 100%;
+            background-color: #e9ecef;
+            height: 20px;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .percentage-fill {
+            height: 100%;
+            background: linear-gradient(to right, #ffc107, #e74c3c);
+            transition: width 0.3s ease;
+        }
+
+        .percentage-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 8pt;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Totals Table */
+        table.totals {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background-color: white;
+        }
+
+        table.totals td {
+            padding: 12px;
+            font-size: 11pt;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        table.totals td:first-child {
+            font-weight: bold;
+            width: 70%;
+        }
+
+        table.totals td:last-child {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        table.totals tr.total-row {
+            background-color: #e74c3c;
+            color: white;
+            font-weight: bold;
+            font-size: 13pt;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #dee2e6;
+            text-align: center;
+        }
+
+        .footer p {
+            font-size: 9pt;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="report-title">EXPENSE SUMMARY REPORT</div>
+            <div class="company-name">{{ business.business_name }}</div>
+            <div class="report-period">
+                {{ report.start_date | format_date }} to {{ report.end_date | format_date }}
+            </div>
+            <div class="company-details">
+                KRA PIN: {{ business.kra_pin }} | {{ business.address }}
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="card">
+                <h3>Total Expenses</h3>
+                <div class="amount">{{ report.total_expenses | format_currency }}</div>
+            </div>
+            <div class="card">
+                <h3>Total Tax Paid</h3>
+                <div class="amount">{{ report.total_tax | format_currency }}</div>
+            </div>
+            <div class="card">
+                <h3>Number of Expenses</h3>
+                <div class="number">{{ report.expense_count }}</div>
+            </div>
+            <div class="card">
+                <h3>Average Expense</h3>
+                <div class="amount">{{ report.average_expense | format_currency }}</div>
+            </div>
+        </div>
+
+        <!-- Insights -->
+        {% if report.largest_category %}
+        <div class="insights">
+            <h3>Key Insights</h3>
+            <p>
+                <strong>Largest Expense Category:</strong> {{ report.largest_category }}
+            </p>
+            <p>
+                <strong>Average Expense Amount:</strong> {{ report.average_expense | format_currency }}
+            </p>
+            <p>
+                <strong>Total Categories:</strong> {{ report.categories | length }}
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- Expenses by Category -->
+        <div class="section">
+            <div class="section-title">EXPENSES BY CATEGORY</div>
+
+            {% if report.categories %}
+            <table class="expenses">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Category</th>
+                        <th class="text-center" style="width: 12%;">Count</th>
+                        <th class="text-right" style="width: 23%;">Amount (KES)</th>
+                        <th class="text-right" style="width: 12%;">Percentage</th>
+                        <th style="width: 23%;">Distribution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in report.categories %}
+                    <tr>
+                        <td><strong>{{ category.category }}</strong></td>
+                        <td class="text-center">{{ category.count }}</td>
+                        <td class="text-right">{{ category.total | format_number }}</td>
+                        <td class="text-right"><strong>{{ category.percentage | format_percentage }}</strong></td>
+                        <td>
+                            <div class="percentage-bar">
+                                <div class="percentage-fill" style="width: {{ category.percentage }}%;"></div>
+                                <div class="percentage-text">{{ category.percentage | format_percentage }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-data">No expenses recorded for this period</div>
+            {% endif %}
+
+            <!-- Totals -->
+            <table class="totals">
+                <tr>
+                    <td>Total Expenses (Excluding Tax)</td>
+                    <td>{{ report.total_expenses | format_currency }}</td>
+                </tr>
+                <tr>
+                    <td>Total Tax Amount (VAT/TOT)</td>
+                    <td>{{ report.total_tax | format_currency }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td>GRAND TOTAL (Including Tax)</td>
+                    <td>{{ (report.total_expenses + report.total_tax) | format_currency }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Note:</strong> Expenses include amounts before tax. Tax amounts shown separately for KRA compliance.</p>
+            <p>This report includes all active expenses recorded during the specified period.</p>
+            <p>Generated on {{ generated_at | format_date }} | Currency: KES (Kenya Shillings)</p>
+        </div>
+    </div>
+</body>
+</html>

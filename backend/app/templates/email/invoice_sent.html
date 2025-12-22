@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Invoice {{ invoice_number }}</h2>
+
+<p>Dear {{ customer_name }},</p>
+
+<p>Please find your invoice from <strong>{{ business_name }}</strong> attached to this email.</p>
+
+<div class="highlight">
+    <p><strong>Invoice Details:</strong></p>
+    <p>Invoice Number: <strong>{{ invoice_number }}</strong></p>
+    <p>Amount Due: <strong>KES {{ amount }}</strong></p>
+    <p>Due Date: <strong>{{ due_date }}</strong></p>
+</div>
+
+<p>Please make payment by the due date to avoid any late fees or service interruptions.</p>
+
+{% if view_url %}
+<div class="button-container">
+    <a href="{{ view_url }}" class="button">View Invoice Online</a>
+</div>
+{% endif %}
+
+<div class="divider"></div>
+
+<p><strong>Payment Methods:</strong></p>
+<ul>
+    <li>M-Pesa</li>
+    <li>Bank Transfer</li>
+    <li>Cash</li>
+    <li>Cheque</li>
+</ul>
+
+<p>If you have any questions about this invoice, please don't hesitate to contact us.</p>
+
+<p>Thank you for your business!</p>
+
+<p>Best regards,<br>
+{{ business_name }}</p>
+{% endblock %}

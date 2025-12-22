@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Support Ticket Update</h2>
+
+<p>Hi {{ user_name }},</p>
+
+<p>Your support ticket has been updated.</p>
+
+<div class="highlight">
+    <p><strong>Ticket Details:</strong></p>
+    <p>Ticket Number: <strong>#{{ ticket_number }}</strong></p>
+    <p>Subject: <strong>{{ ticket_subject }}</strong></p>
+    <p>New Status: <strong>{{ new_status }}</strong></p>
+</div>
+
+{% if message_preview %}
+<p><strong>Latest Update:</strong></p>
+<div style="background: white; padding: 20px; border-left: 4px solid #2563eb; border-radius: 4px; margin: 20px 0;">
+    <p style="color: #1f2937; margin: 0;">{{ message_preview }}</p>
+</div>
+{% endif %}
+
+{% if ticket_url %}
+<div class="button-container">
+    <a href="{{ ticket_url }}" class="button">View Ticket Details</a>
+</div>
+{% endif %}
+
+<div class="divider"></div>
+
+<p>You can reply to this ticket through your account dashboard. Our support team typically responds within 24 hours during business days.</p>
+
+<p>Thank you for your patience.</p>
+
+<p>Best regards,<br>
+Kenya SMB Accounting Support Team</p>
+{% endblock %}

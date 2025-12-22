@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profit & Loss Statement</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 100%;
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #2c3e50;
+        }
+
+        .report-title {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .company-name {
+            font-size: 16pt;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .report-period {
+            font-size: 11pt;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .company-details {
+            font-size: 9pt;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        /* Summary Cards */
+        .summary-cards {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            gap: 15px;
+        }
+
+        .card {
+            flex: 1;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .card.revenue {
+            background-color: #d4edda;
+            border: 2px solid #28a745;
+        }
+
+        .card.expenses {
+            background-color: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+
+        .card.profit {
+            background-color: #d1ecf1;
+            border: 2px solid #17a2b8;
+        }
+
+        .card h3 {
+            font-size: 10pt;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .card .amount {
+            font-size: 18pt;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .card.revenue .amount { color: #28a745; }
+        .card.expenses .amount { color: #dc3545; }
+        .card.profit .amount { color: #17a2b8; }
+
+        /* Revenue Section */
+        .section {
+            margin: 30px 0;
+        }
+
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2c3e50;
+        }
+
+        /* Expenses Table */
+        table.expenses {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table.expenses thead {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        table.expenses th {
+            padding: 12px 10px;
+            text-align: left;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+
+        table.expenses th.text-right {
+            text-align: right;
+        }
+
+        table.expenses th.text-center {
+            text-align: center;
+        }
+
+        table.expenses tbody tr {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        table.expenses tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        table.expenses td {
+            padding: 10px;
+            font-size: 10pt;
+        }
+
+        table.expenses td.text-right {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        table.expenses td.text-center {
+            text-align: center;
+        }
+
+        /* Totals Table */
+        table.totals {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background-color: white;
+        }
+
+        table.totals td {
+            padding: 12px;
+            font-size: 11pt;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        table.totals td:first-child {
+            font-weight: bold;
+            width: 70%;
+        }
+
+        table.totals td:last-child {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        table.totals tr.total-revenue {
+            background-color: #d4edda;
+            font-weight: bold;
+        }
+
+        table.totals tr.total-expenses {
+            background-color: #f8d7da;
+            font-weight: bold;
+        }
+
+        table.totals tr.gross-profit {
+            background-color: #d1ecf1;
+            font-weight: bold;
+            font-size: 12pt;
+        }
+
+        table.totals tr.net-profit {
+            background-color: #2c3e50;
+            color: white;
+            font-weight: bold;
+            font-size: 13pt;
+        }
+
+        /* Margins Section */
+        .margins {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .margins h3 {
+            font-size: 12pt;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .margins table {
+            width: 100%;
+        }
+
+        .margins td {
+            padding: 8px;
+            font-size: 10pt;
+        }
+
+        .margins td:first-child {
+            font-weight: bold;
+        }
+
+        .margins td:last-child {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            color: #17a2b8;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #dee2e6;
+            text-align: center;
+        }
+
+        .footer p {
+            font-size: 9pt;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        /* Amount Formatting */
+        .amount {
+            font-family: 'Courier New', monospace;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="report-title">PROFIT & LOSS STATEMENT</div>
+            <div class="company-name">{{ business.business_name }}</div>
+            <div class="report-period">
+                {{ report.start_date | format_date }} to {{ report.end_date | format_date }}
+            </div>
+            <div class="company-details">
+                KRA PIN: {{ business.kra_pin }} | {{ business.address }}
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="card revenue">
+                <h3>Total Revenue</h3>
+                <div class="amount">{{ report.total_revenue | format_currency }}</div>
+            </div>
+            <div class="card expenses">
+                <h3>Total Expenses</h3>
+                <div class="amount">{{ report.total_expenses | format_currency }}</div>
+            </div>
+            <div class="card profit">
+                <h3>Net Profit</h3>
+                <div class="amount">{{ report.net_profit | format_currency }}</div>
+            </div>
+        </div>
+
+        <!-- Revenue Section -->
+        <div class="section">
+            <div class="section-title">REVENUE</div>
+            <table class="totals">
+                <tr class="total-revenue">
+                    <td>Sales Revenue (Paid Invoices)</td>
+                    <td class="amount">{{ report.total_revenue | format_currency }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Expenses Section -->
+        <div class="section">
+            <div class="section-title">EXPENSES BY CATEGORY</div>
+
+            {% if report.expenses_by_category %}
+            <table class="expenses">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Category</th>
+                        <th class="text-center" style="width: 15%;">Count</th>
+                        <th class="text-right" style="width: 20%;">Amount (KES)</th>
+                        <th class="text-right" style="width: 25%;">Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in report.expenses_by_category %}
+                    <tr>
+                        <td>{{ category.category }}</td>
+                        <td class="text-center">{{ category.count }}</td>
+                        <td class="text-right amount">{{ category.total | format_number }}</td>
+                        <td class="text-right">
+                            <strong>{{ category.percentage | format_percentage }}</strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-data">No expenses recorded for this period</div>
+            {% endif %}
+
+            <table class="totals">
+                <tr class="total-expenses">
+                    <td>Total Expenses</td>
+                    <td class="amount">{{ report.total_expenses | format_currency }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Profit Calculation -->
+        <div class="section">
+            <div class="section-title">PROFIT SUMMARY</div>
+            <table class="totals">
+                <tr>
+                    <td>Total Revenue</td>
+                    <td class="amount">{{ report.total_revenue | format_currency }}</td>
+                </tr>
+                <tr>
+                    <td>Less: Total Expenses</td>
+                    <td class="amount">({{ report.total_expenses | format_number }})</td>
+                </tr>
+                <tr class="gross-profit">
+                    <td>Gross Profit</td>
+                    <td class="amount">{{ report.gross_profit | format_currency }}</td>
+                </tr>
+                <tr class="net-profit">
+                    <td>NET PROFIT</td>
+                    <td class="amount">{{ report.net_profit | format_currency }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Margins -->
+        <div class="margins">
+            <h3>Profit Margins</h3>
+            <table>
+                <tr>
+                    <td>Gross Profit Margin:</td>
+                    <td>{{ report.gross_margin_percentage | format_percentage }}</td>
+                </tr>
+                <tr>
+                    <td>Net Profit Margin:</td>
+                    <td>{{ report.net_margin_percentage | format_percentage }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Note:</strong> Revenue is based on paid invoices only. Expenses include VAT/TOT amounts.</p>
+            <p>This report is for internal use and complies with Kenya Revenue Authority (KRA) guidelines.</p>
+            <p>Generated on {{ generated_at | format_date }} | Currency: KES (Kenya Shillings)</p>
+        </div>
+    </div>
+</body>
+</html>

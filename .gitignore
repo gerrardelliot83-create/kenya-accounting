@@ -1,0 +1,59 @@
+# Environment files (NEVER commit these)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Sensitive files
+*.pem
+*.key
+*.crt
+credentials.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+env/
+
+# Node
+node_modules/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+test-results/
+playwright-report/
+
+# Build outputs
+backend/dist/
+frontend/dist/
+
+# Local development
+*.bak
+*.backup

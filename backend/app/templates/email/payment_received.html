@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Payment Received - Thank You!</h2>
+
+<p>Dear {{ customer_name }},</p>
+
+<p>Thank you! We have successfully received your payment.</p>
+
+<div class="highlight">
+    <p><strong>Payment Details:</strong></p>
+    <p>Invoice Number: <strong>{{ invoice_number }}</strong></p>
+    <p>Amount Paid: <strong>KES {{ payment_amount }}</strong></p>
+    <p>Payment Date: <strong>{{ payment_date }}</strong></p>
+    <p>Payment Method: <strong>{{ payment_method }}</strong></p>
+    {% if remaining_balance != "0.00" and remaining_balance != "0" %}
+    <p>Remaining Balance: <strong>KES {{ remaining_balance }}</strong></p>
+    {% else %}
+    <p>Status: <strong style="color: #059669;">Paid in Full ✓</strong></p>
+    {% endif %}
+</div>
+
+{% if remaining_balance != "0.00" and remaining_balance != "0" %}
+<p>Please note that a balance of <strong>KES {{ remaining_balance }}</strong> remains outstanding on this invoice.</p>
+{% else %}
+<p>Your invoice has been paid in full. No further payment is required.</p>
+{% endif %}
+
+<div class="divider"></div>
+
+<p>A receipt for this payment has been recorded in our system. If you need a formal receipt, please contact us.</p>
+
+<p>We appreciate your prompt payment and look forward to continuing to serve you.</p>
+
+<p>Best regards,<br>
+{{ business_name }}</p>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Additional Information Required</h2>
+
+<p>Dear {{ applicant_name }},</p>
+
+<p>Thank you for your application to join Kenya SMB Accounting for <strong>{{ business_name }}</strong>.</p>
+
+<p>We are currently reviewing your application, but we need some additional information before we can proceed.</p>
+
+{% if message %}
+<div class="highlight">
+    <p><strong>Information Needed:</strong></p>
+    <p>{{ message }}</p>
+</div>
+{% endif %}
+
+<div class="divider"></div>
+
+<p><strong>Next Steps:</strong></p>
+<ol>
+    <li>Review the information requested above</li>
+    <li>Gather the necessary documents or details</li>
+    <li>Reply to this email with the requested information</li>
+    <li>Wait for our team to review and process your application</li>
+</ol>
+
+<p>Please provide the requested information within <strong>7 days</strong> to avoid delays in processing your application.</p>
+
+<p>If you have any questions or need clarification about what's needed, please don't hesitate to contact our support team.</p>
+
+<p>We look forward to hearing from you soon.</p>
+
+<p>Best regards,<br>
+The Kenya SMB Accounting Team</p>
+{% endblock %}

@@ -1,0 +1,281 @@
+"""
+FastAPI Application Entry Point
+
+Main application with CORS, exception handlers, and middleware.
+
+Security Features:
+- Rate limiting (SlowAPI)
+- Security headers (HSTS, CSP, etc.)
+- Request validation (size limits, suspicious agents)
+- IP blocking for malicious activity
+"""
+
+import logging
+import sys
+from contextlib import asynccontextmanager
+from typing import Any
+import asyncio
+
+from fastapi import FastAPI, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from sqlalchemy.exc import SQLAlchemyError
+from slowapi.errors import RateLimitExceeded
+
+from app.config import get_settings
+from app.api.v1.router import api_router
+from app.db.session import dispose_engine
+from app.schemas.common import ErrorResponse
+from app.core.rate_limiter import limiter, rate_limit_exceeded_handler
+from app.core.security_headers import SecurityHeadersMiddleware
+from app.core.request_validation import RequestValidationMiddleware
+from app.core.ip_blocker import get_ip_blocker
+
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan manager.
+
+    Handles startup and shutdown events.
+    """
+    # Startup
+    settings = get_settings()
+    logger.info(f"Starting {settings.app_name} v{settings.app_version}")
+    logger.info(f"Environment: {settings.environment}")
+    logger.info(f"Debug mode: {settings.debug}")
+
+    # Start IP blocker cleanup task
+    ip_blocker = get_ip_blocker()
+    loop = asyncio.get_event_loop()
+    ip_blocker.start_cleanup_task(loop)
+    logger.info("IP blocker cleanup task started")
+
+    yield
+
+    # Shutdown
+    logger.info("Shutting down application")
+    await dispose_engine()
+    logger.info("Database connections disposed")
+
+
+# Create FastAPI application
+def create_application() -> FastAPI:
+    """
+    Create and configure the FastAPI application.
+
+    Returns:
+        FastAPI: Configured FastAPI application
+    """
+    settings = get_settings()
+
+    app = FastAPI(
+        title=settings.app_name,
+        version=settings.app_version,
+        description="Backend API for Kenya SMB Accounting MVP",
+        docs_url="/docs" if settings.debug else None,
+        redoc_url="/redoc" if settings.debug else None,
+        lifespan=lifespan,
+    )
+
+    # Configure rate limiter
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+    logger.info("Rate limiter configured")
+
+    # Add security middleware (ORDER MATTERS - add before CORS)
+    # 1. Request validation (first line of defense)
+    app.add_middleware(
+        RequestValidationMiddleware,
+        max_content_length=10 * 1024 * 1024,  # 10MB
+        block_suspicious_agents=True,
+        log_suspicious_activity=True
+    )
+    logger.info("Request validation middleware added")
+
+    # 2. Security headers (second line of defense)
+    app.add_middleware(
+        SecurityHeadersMiddleware,
+        enable_csp=True,
+        strict_csp=False  # Set to True for API-only (no frontend)
+    )
+    logger.info("Security headers middleware added")
+
+    # 3. CORS (should be last middleware added, first executed)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=settings.cors_allow_credentials,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["X-Request-ID"],
+    )
+    logger.info("CORS middleware configured")
+
+    # Include routers
+    app.include_router(api_router, prefix="/api/v1")
+
+    # Exception handlers
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(
+        request: Request,
+        exc: RequestValidationError
+    ) -> JSONResponse:
+        """Handle validation errors."""
+        logger.warning(f"Validation error: {exc.errors()}")
+
+        # Convert error details to JSON-serializable format
+        # (handles Decimal and other non-serializable types)
+        import json
+        from decimal import Decimal as DecimalType
+
+        def make_serializable(obj):
+            """Convert non-serializable objects to strings."""
+            if isinstance(obj, DecimalType):
+                return str(obj)
+            elif isinstance(obj, dict):
+                return {k: make_serializable(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [make_serializable(item) for item in obj]
+            return obj
+
+        serializable_errors = make_serializable(exc.errors())
+
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content=ErrorResponse(
+                error="ValidationError",
+                message="Invalid input data",
+                detail=serializable_errors,
+            ).model_dump(),
+        )
+
+    @app.exception_handler(SQLAlchemyError)
+    async def database_exception_handler(
+        request: Request,
+        exc: SQLAlchemyError
+    ) -> JSONResponse:
+        """Handle database errors."""
+        logger.error(f"Database error: {str(exc)}", exc_info=True)
+
+        # Don't expose internal database errors in production
+        if settings.is_production:
+            message = "A database error occurred"
+        else:
+            message = str(exc)
+
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=ErrorResponse(
+                error="DatabaseError",
+                message=message,
+            ).model_dump(),
+        )
+
+    @app.exception_handler(Exception)
+    async def general_exception_handler(
+        request: Request,
+        exc: Exception
+    ) -> JSONResponse:
+        """Handle general exceptions."""
+        logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+
+        # Don't expose internal errors in production
+        if settings.is_production:
+            message = "An internal error occurred"
+        else:
+            message = str(exc)
+
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=ErrorResponse(
+                error="InternalError",
+                message=message,
+            ).model_dump(),
+        )
+
+    # Middleware for request ID and logging
+    @app.middleware("http")
+    async def add_request_id_and_log(request: Request, call_next):
+        """Add request ID to response and log requests."""
+        import uuid
+
+        request_id = str(uuid.uuid4())
+
+        # Log request
+        logger.info(
+            f"Request: {request.method} {request.url.path} "
+            f"[{request_id}] from {request.client.host if request.client else 'unknown'}"
+        )
+
+        # Add request ID to request state
+        request.state.request_id = request_id
+
+        try:
+            response = await call_next(request)
+
+            # Add request ID to response headers
+            response.headers["X-Request-ID"] = request_id
+
+            # Log response
+            logger.info(
+                f"Response: {request.method} {request.url.path} "
+                f"[{request_id}] - Status: {response.status_code}"
+            )
+
+            return response
+
+        except Exception as e:
+            logger.error(
+                f"Error processing request: {request.method} {request.url.path} "
+                f"[{request_id}] - Error: {str(e)}",
+                exc_info=True
+            )
+            raise
+
+    # Root endpoint
+    @app.get(
+        "/",
+        summary="Root Endpoint",
+        description="API root endpoint with basic information",
+        tags=["System"]
+    )
+    async def root() -> dict[str, Any]:
+        """Root endpoint."""
+        return {
+            "name": settings.app_name,
+            "version": settings.app_version,
+            "status": "running",
+            "docs": "/docs" if settings.debug else None,
+        }
+
+    return app
+
+
+# Create application instance
+app = create_application()
+
+
+# Run with: uvicorn app.main:app --reload
+if __name__ == "__main__":
+    import uvicorn
+
+    settings = get_settings()
+
+    uvicorn.run(
+        "app.main:app",
+        host=settings.host,
+        port=settings.port,
+        reload=settings.debug,
+        log_level=settings.log_level.lower(),
+    )

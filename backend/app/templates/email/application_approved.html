@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Congratulations! Your Application Has Been Approved</h2>
+
+<p>Dear {{ applicant_name }},</p>
+
+<p>Great news! Your business application for <strong>{{ business_name }}</strong> has been approved.</p>
+
+<p>Welcome to Kenya SMB Accounting! You now have access to our comprehensive accounting platform designed specifically for Kenyan small and medium businesses.</p>
+
+{% if credentials %}
+<div class="highlight">
+    <p><strong>Your Login Credentials:</strong></p>
+    <p>Email: <strong>{{ credentials.email }}</strong></p>
+    <p>Temporary Password: <code>{{ credentials.password }}</code></p>
+</div>
+
+<div class="button-container">
+    <a href="{{ credentials.login_url }}" class="button">Login to Your Account</a>
+</div>
+
+<p><strong>Important:</strong> Please change your password upon first login for security.</p>
+{% endif %}
+
+<div class="divider"></div>
+
+<p><strong>What's Next?</strong></p>
+<ol>
+    <li>Log in to your account</li>
+    <li>Complete your business profile</li>
+    <li>Set up your chart of accounts</li>
+    <li>Configure tax settings (VAT/TOT)</li>
+    <li>Start creating invoices and tracking expenses</li>
+</ol>
+
+{% if message %}
+<div class="divider"></div>
+<p><strong>Message from our team:</strong></p>
+<p style="font-style: italic;">{{ message }}</p>
+{% endif %}
+
+<p>If you need any assistance getting started, our support team is here to help.</p>
+
+<p>Welcome aboard!</p>
+
+<p>Best regards,<br>
+The Kenya SMB Accounting Team</p>
+{% endblock %}

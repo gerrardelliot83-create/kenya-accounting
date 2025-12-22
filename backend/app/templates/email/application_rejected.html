@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Application Status Update</h2>
+
+<p>Dear {{ applicant_name }},</p>
+
+<p>Thank you for your interest in Kenya SMB Accounting and for submitting your application for <strong>{{ business_name }}</strong>.</p>
+
+<p>After careful review, we regret to inform you that we are unable to approve your application at this time.</p>
+
+{% if message %}
+<div class="highlight">
+    <p><strong>Reason:</strong></p>
+    <p>{{ message }}</p>
+</div>
+{% endif %}
+
+<div class="divider"></div>
+
+<p><strong>What You Can Do:</strong></p>
+<ul>
+    <li>Review the reason provided above</li>
+    <li>Address any issues mentioned</li>
+    <li>Reapply after 30 days if circumstances change</li>
+    <li>Contact our support team if you have questions</li>
+</ul>
+
+<p>We appreciate your understanding and hope to serve you in the future.</p>
+
+<p>If you believe this decision was made in error or have additional information to provide, please contact our support team at <a href="mailto:support@kenyaaccounting.com">support@kenyaaccounting.com</a>.</p>
+
+<p>Best regards,<br>
+The Kenya SMB Accounting Team</p>
+{% endblock %}

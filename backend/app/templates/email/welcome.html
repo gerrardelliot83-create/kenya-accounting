@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Welcome, {{ user_name }}!</h2>
+
+<p>Your account for <strong>{{ business_name }}</strong> has been successfully created. We're excited to have you on board!</p>
+
+<p>You can now access all the powerful features of Kenya SMB Accounting, including invoicing, expense tracking, tax calculations, and financial reporting.</p>
+
+<div class="highlight">
+    <p><strong>Your Login Credentials:</strong></p>
+    <p>Email: <strong>{{ email }}</strong></p>
+    <p>Temporary Password: <code>{{ temporary_password }}</code></p>
+</div>
+
+<p><strong>Important Security Notice:</strong></p>
+<ul>
+    <li>Please change your password upon first login for security</li>
+    <li>Never share your password with anyone</li>
+    <li>Enable two-factor authentication for added security</li>
+</ul>
+
+<div class="button-container">
+    <a href="{{ login_url }}" class="button">Login to Your Account</a>
+</div>
+
+<div class="divider"></div>
+
+<p><strong>Getting Started:</strong></p>
+<ol>
+    <li>Log in to your account using the credentials above</li>
+    <li>Complete your business profile</li>
+    <li>Set up your chart of accounts</li>
+    <li>Start creating invoices and tracking expenses</li>
+</ol>
+
+<p>If you have any questions or need assistance, our support team is here to help.</p>
+
+<p>Best regards,<br>
+The Kenya SMB Accounting Team</p>
+{% endblock %}
