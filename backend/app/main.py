@@ -86,6 +86,9 @@ def create_application() -> FastAPI:
         docs_url="/docs" if settings.debug else None,
         redoc_url="/redoc" if settings.debug else None,
         lifespan=lifespan,
+        # Disable automatic slash redirects to prevent mixed content issues
+        # when behind a proxy (Railway) that handles HTTPS
+        redirect_slashes=False,
     )
 
     # Configure rate limiter
