@@ -134,13 +134,27 @@ class ApiClient {
       },
     });
 
-    // Request interceptor for adding auth token
+    // Request interceptor for adding auth token and ensuring trailing slashes
     this.client.interceptors.request.use(
       (config) => {
+        // Add auth token
         const token = localStorage.getItem(ACCESS_TOKEN_KEY);
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Ensure trailing slash on URL path to prevent redirect issues
+        // This avoids 307 redirects that may use HTTP instead of HTTPS
+        if (config.url) {
+          // Split URL into path and query parts
+          const [path, query] = config.url.split('?');
+
+          // Add trailing slash if path doesn't end with one and doesn't have a file extension
+          if (path && !path.endsWith('/') && !path.includes('.')) {
+            config.url = query ? `${path}/?${query}` : `${path}/`;
+          }
+        }
+
         return config;
       },
       (error) => {
