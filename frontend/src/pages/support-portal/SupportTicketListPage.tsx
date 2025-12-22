@@ -24,7 +24,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import type { TicketFilters, TicketStatus, TicketPriority, TicketCategory } from '@/types/admin-support';
+import type { TicketFilters, TicketStatus, TicketPriority, TicketCategory, AdminTicket } from '@/types/admin-support';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -37,7 +37,7 @@ export const SupportTicketListPage = () => {
     status: (searchParams.get('status') as TicketStatus) || 'all',
     priority: (searchParams.get('priority') as TicketPriority) || 'all',
     category: (searchParams.get('category') as TicketCategory) || 'all',
-    assigned: searchParams.get('assigned') || 'all',
+    assigned: (searchParams.get('assigned') as 'all' | 'unassigned' | 'assigned_to_me') || 'all',
     search: searchParams.get('search') || '',
     page: parseInt(searchParams.get('page') || '1'),
     limit: ITEMS_PER_PAGE,
@@ -286,7 +286,7 @@ export const SupportTicketListPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.tickets.map((ticket) => (
+                    {data.tickets.map((ticket: AdminTicket) => (
                       <TableRow key={ticket.id}>
                         <TableCell>
                           <Link

@@ -41,6 +41,15 @@ export const validateVatNumber = (vatNumber: string): boolean => {
  * Generates a temporary password
  * Format: 8 characters with uppercase, lowercase, numbers, and special chars
  */
+/**
+ * Validates Kenyan National ID format
+ * Format: 8 digits
+ */
+export const validateKenyanId = (id: string): boolean => {
+  const idRegex = /^\d{8}$/;
+  return idRegex.test(id);
+};
+
 export const generateTemporaryPassword = (): string => {
   const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const lowercase = 'abcdefghijklmnopqrstuvwxyz';

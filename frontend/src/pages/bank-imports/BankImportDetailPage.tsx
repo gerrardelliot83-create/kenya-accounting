@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Download, FileText, AlertCircle } from 'lucide-react';
+import { ChevronLeft, Download, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -85,21 +85,6 @@ export const BankImportDetailPage = () => {
     };
     const config = variants[status];
     return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
-  const getStatusColor = (status: ReconciliationStatus) => {
-    switch (status) {
-      case 'matched':
-        return 'text-green-600';
-      case 'suggested':
-        return 'text-blue-600';
-      case 'unmatched':
-        return 'text-yellow-600';
-      case 'ignored':
-        return 'text-gray-600';
-      default:
-        return '';
-    }
   };
 
   const getImportStatusBadge = (status: string) => {

@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Inbox,
 } from 'lucide-react';
+import type { AdminTicket } from '@/types/admin-support';
 import { formatDistanceToNow } from 'date-fns';
 
 export const SupportDashboardPage = () => {
@@ -185,7 +186,7 @@ export const SupportDashboardPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentTickets.tickets.map((ticket) => (
+                  {recentTickets.tickets.map((ticket: AdminTicket) => (
                     <TableRow key={ticket.id}>
                       <TableCell>
                         <Link

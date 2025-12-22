@@ -21,7 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search, Download, Building2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { BusinessListParams } from '@/types/admin';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 import { formatDistanceToNow } from 'date-fns';

@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, TrendingUp, CalendarDays, Building2, Clock, CheckCircle } from 'lucide-react';
+import { UserPlus, TrendingUp, Building2, Clock, CheckCircle } from 'lucide-react';
 import { useOnboardingStats, useApplications } from '@/hooks/useOnboarding';
 import { formatDate } from '@/lib/formatters';
 import type { OnboardingStatus } from '@/types/onboarding';
@@ -15,6 +15,7 @@ const statusColors: Record<OnboardingStatus, string> = {
   approved: 'bg-green-500',
   rejected: 'bg-red-500',
   info_requested: 'bg-orange-500',
+  completed: 'bg-green-600',
 };
 
 const statusLabels: Record<OnboardingStatus, string> = {
@@ -24,6 +25,7 @@ const statusLabels: Record<OnboardingStatus, string> = {
   approved: 'Approved',
   rejected: 'Rejected',
   info_requested: 'Info Requested',
+  completed: 'Completed',
 };
 
 export const OnboardingDashboardPage = () => {

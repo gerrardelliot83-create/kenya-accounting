@@ -26,7 +26,6 @@ import {
   validateKenyanId,
 } from '@/lib/kenya-validation';
 import { ArrowLeft, Save, Send } from 'lucide-react';
-import type { CreateApplicationRequest } from '@/types/onboarding';
 
 // Validation schema
 const applicationSchema = z.object({

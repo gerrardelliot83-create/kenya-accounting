@@ -176,6 +176,17 @@ export const onboardingService = {
     }).length;
 
     return {
+      // API fields (mock values)
+      total_applications: items.length,
+      draft: 0,
+      submitted: 0,
+      under_review: 0,
+      approved: items.length,
+      rejected: 0,
+      info_requested: 0,
+      approved_this_month: monthCount,
+      avg_processing_days: 0,
+      // Local mock fields
       today: todayCount,
       thisWeek: weekCount,
       thisMonth: monthCount,

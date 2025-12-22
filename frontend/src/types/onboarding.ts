@@ -1,7 +1,78 @@
 // Onboarding API Types - Aligned with Backend API
 
 export type BusinessType = 'sole_proprietor' | 'partnership' | 'limited_company';
-export type OnboardingStatus = 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'info_requested';
+export type OnboardingStatus = 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'info_requested' | 'completed';
+
+// Local/Mock types for onboarding service
+export interface Business {
+  id: string;
+  name: string;
+  businessType: BusinessType;
+  kraPin: string;
+  industry?: string;
+  phone: string;
+  email: string;
+  address?: string;
+  county: string;
+  taxRegime?: string;
+  vatNumber?: string;
+  estimatedAnnualTurnover?: number;
+  filingFrequency?: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface BusinessCreateData {
+  businessInfo: {
+    name: string;
+    businessType: BusinessType;
+    kraPin: string;
+    industry?: string;
+  };
+  contactInfo: {
+    phone: string;
+    email: string;
+    address?: string;
+    county: string;
+  };
+  taxConfig: {
+    taxRegime?: string;
+    vatNumber?: string;
+    estimatedAnnualTurnover?: number;
+    filingFrequency?: string;
+  };
+  primaryUser: {
+    fullName: string;
+    email: string;
+  };
+}
+
+export interface OnboardingItem {
+  id: string;
+  businessId: string;
+  businessName: string;
+  status: OnboardingStatus;
+  agentId: string;
+  agentName: string;
+  createdAt: string;
+  completedAt?: string;
+  notes?: string;
+}
+
+export interface OnboardingQueueParams {
+  status?: OnboardingStatus;
+  startDate?: string;
+  endDate?: string;
+  offset?: number;
+  limit?: number;
+}
+
+export interface OnboardingQueueResponse {
+  items: OnboardingItem[];
+  total: number;
+  limit: number;
+  offset: number;
+}
 
 // Application entity returned by API
 export interface BusinessApplication {
@@ -50,6 +121,11 @@ export interface OnboardingStats {
   info_requested: number;
   approved_this_month: number;
   avg_processing_days: number;
+  // Additional properties for mock service
+  today?: number;
+  thisWeek?: number;
+  thisMonth?: number;
+  total?: number;
 }
 
 // Request types for creating/updating applications

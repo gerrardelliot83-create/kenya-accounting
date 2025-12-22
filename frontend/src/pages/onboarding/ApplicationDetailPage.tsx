@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -45,6 +45,7 @@ const statusColors: Record<OnboardingStatus, string> = {
   approved: 'bg-green-500',
   rejected: 'bg-red-500',
   info_requested: 'bg-orange-500',
+  completed: 'bg-green-600',
 };
 
 const statusLabels: Record<OnboardingStatus, string> = {
@@ -54,6 +55,7 @@ const statusLabels: Record<OnboardingStatus, string> = {
   approved: 'Approved',
   rejected: 'Rejected',
   info_requested: 'Info Requested',
+  completed: 'Completed',
 };
 
 export const ApplicationDetailPage = () => {

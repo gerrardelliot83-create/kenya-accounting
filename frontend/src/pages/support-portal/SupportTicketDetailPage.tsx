@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   useAdminTicket,
   useUpdateTicket,
@@ -47,7 +47,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import type { TicketStatus, TicketPriority } from '@/types/admin-support';
+import type { TicketStatus, TicketPriority, TicketMessage, CannedResponse } from '@/types/admin-support';
 import { useToast } from '@/hooks/use-toast';
 
 export const SupportTicketDetailPage = () => {
@@ -281,7 +281,7 @@ export const SupportTicketDetailPage = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {ticket.messages.map((message) => (
+                  {ticket.messages.map((message: TicketMessage) => (
                     <div
                       key={message.id}
                       className={`rounded-lg border p-4 ${
@@ -362,7 +362,7 @@ export const SupportTicketDetailPage = () => {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="max-h-96 space-y-2 overflow-y-auto">
-                        {templates?.map((template) => (
+                        {templates?.map((template: CannedResponse) => (
                           <div
                             key={template.id}
                             className="cursor-pointer rounded-lg border p-3 hover:bg-accent"

@@ -71,7 +71,6 @@ export const AgentAssignSelect = ({
     );
   }
 
-  const isAssigned = !!currentAgentId;
   const isAssignedToMe = currentAgentId === user?.id;
   const hasChanged = selectedAgentId !== currentAgentId && selectedAgentId !== '';
 
@@ -85,7 +84,7 @@ export const AgentAssignSelect = ({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="unassigned">Unassigned</SelectItem>
-          {agents?.map((agent) => (
+          {agents?.map((agent: { id: string; name: string; active_tickets_count: number }) => (
             <SelectItem key={agent.id} value={agent.id}>
               {agent.name} ({agent.active_tickets_count} tickets)
             </SelectItem>

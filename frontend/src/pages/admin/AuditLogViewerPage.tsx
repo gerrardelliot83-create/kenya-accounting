@@ -19,16 +19,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FileText, ChevronDown, ChevronRight } from 'lucide-react';
-import type { AuditLogParams, AuditLogEntry } from '@/types/admin';
+import type { AuditLogParams } from '@/types/admin';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -38,7 +32,6 @@ export const AuditLogViewerPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [selectedLog, setSelectedLog] = useState<AuditLogEntry | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const queryParams = useMemo(() => {

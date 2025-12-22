@@ -41,77 +41,68 @@ declare module '@/lib/api' {
   }
 }
 
-// Add methods to apiClient prototype
-Object.assign(apiClient, {
+// Admin support API methods using the apiClient's internal axios instance
+const adminSupportApi = {
   async getAdminTickets(filters?: TicketFilters): Promise<TicketListResponse> {
-    const response = await (apiClient as any).client.get<TicketListResponse>(
-      '/admin/support/tickets',
-      { params: filters }
-    );
-    return response.data;
+    const client = (apiClient as any).client;
+    const response = await client.get('/admin/support/tickets', { params: filters });
+    return response.data as TicketListResponse;
   },
 
   async getAdminTicket(id: string): Promise<AdminTicketDetail> {
-    const response = await (apiClient as any).client.get<AdminTicketDetail>(
-      `/admin/support/tickets/${id}`
-    );
-    return response.data;
+    const client = (apiClient as any).client;
+    const response = await client.get(`/admin/support/tickets/${id}`);
+    return response.data as AdminTicketDetail;
   },
 
   async updateTicket(id: string, data: UpdateTicketRequest): Promise<AdminTicket> {
-    const response = await (apiClient as any).client.put<AdminTicket>(
-      `/admin/support/tickets/${id}`,
-      data
-    );
-    return response.data;
+    const client = (apiClient as any).client;
+    const response = await client.put(`/admin/support/tickets/${id}`, data);
+    return response.data as AdminTicket;
   },
 
   async assignTicket(id: string, data: AssignTicketRequest): Promise<AdminTicket> {
-    const response = await (apiClient as any).client.post<AdminTicket>(
-      `/admin/support/tickets/${id}/assign`,
-      data
-    );
-    return response.data;
+    const client = (apiClient as any).client;
+    const response = await client.post(`/admin/support/tickets/${id}/assign`, data);
+    return response.data as AdminTicket;
   },
 
   async addAgentMessage(id: string, data: AgentMessage): Promise<AdminTicketDetail> {
-    const response = await (apiClient as any).client.post<AdminTicketDetail>(
-      `/admin/support/tickets/${id}/messages`,
-      data
-    );
-    return response.data;
+    const client = (apiClient as any).client;
+    const response = await client.post(`/admin/support/tickets/${id}/messages`, data);
+    return response.data as AdminTicketDetail;
   },
 
   async getSupportStats(): Promise<SupportStats> {
-    const response = await (apiClient as any).client.get<SupportStats>('/admin/support/stats');
-    return response.data;
+    const client = (apiClient as any).client;
+    const response = await client.get('/admin/support/stats');
+    return response.data as SupportStats;
   },
 
   async getCannedResponses(): Promise<CannedResponse[]> {
-    const response = await (apiClient as any).client.get<CannedResponse[]>(
-      '/admin/support/templates'
-    );
-    return response.data;
+    const client = (apiClient as any).client;
+    const response = await client.get('/admin/support/templates');
+    return response.data as CannedResponse[];
   },
 
   async getCannedResponse(id: string): Promise<CannedResponse> {
-    const response = await (apiClient as any).client.get<CannedResponse>(
-      `/admin/support/templates/${id}`
-    );
-    return response.data;
+    const client = (apiClient as any).client;
+    const response = await client.get(`/admin/support/templates/${id}`);
+    return response.data as CannedResponse;
   },
 
   async getSupportAgents(): Promise<SupportAgent[]> {
-    const response = await (apiClient as any).client.get<SupportAgent[]>('/admin/support/agents');
-    return response.data;
+    const client = (apiClient as any).client;
+    const response = await client.get('/admin/support/agents');
+    return response.data as SupportAgent[];
   },
-});
+};
 
 // Hook: Get all tickets with filters
 export const useAdminTickets = (filters?: TicketFilters) => {
   return useQuery({
     queryKey: SUPPORT_KEYS.ticketsList(filters),
-    queryFn: () => apiClient.getAdminTickets(filters),
+    queryFn: () => adminSupportApi.getAdminTickets(filters),
     staleTime: 30000, // 30 seconds
   });
 };
@@ -120,7 +111,7 @@ export const useAdminTickets = (filters?: TicketFilters) => {
 export const useAdminTicket = (id: string) => {
   return useQuery({
     queryKey: SUPPORT_KEYS.ticket(id),
-    queryFn: () => apiClient.getAdminTicket(id),
+    queryFn: () => adminSupportApi.getAdminTicket(id),
     enabled: !!id,
   });
 };
@@ -131,7 +122,7 @@ export const useUpdateTicket = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateTicketRequest }) =>
-      apiClient.updateTicket(id, data),
+      adminSupportApi.updateTicket(id, data),
     onSuccess: (updatedTicket) => {
       // Invalidate tickets list
       queryClient.invalidateQueries({ queryKey: SUPPORT_KEYS.tickets() });
@@ -149,7 +140,7 @@ export const useAssignTicket = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: AssignTicketRequest }) =>
-      apiClient.assignTicket(id, data),
+      adminSupportApi.assignTicket(id, data),
     onSuccess: (updatedTicket) => {
       // Invalidate tickets list
       queryClient.invalidateQueries({ queryKey: SUPPORT_KEYS.tickets() });
@@ -167,7 +158,7 @@ export const useAddAgentMessage = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: AgentMessage }) =>
-      apiClient.addAgentMessage(id, data),
+      adminSupportApi.addAgentMessage(id, data),
     onSuccess: (updatedTicket) => {
       // Update single ticket cache with new message
       queryClient.setQueryData(SUPPORT_KEYS.ticket(updatedTicket.id), updatedTicket);
@@ -181,7 +172,7 @@ export const useAddAgentMessage = () => {
 export const useSupportStats = () => {
   return useQuery({
     queryKey: SUPPORT_KEYS.stats(),
-    queryFn: () => apiClient.getSupportStats(),
+    queryFn: () => adminSupportApi.getSupportStats(),
     staleTime: 60000, // 1 minute
   });
 };
@@ -190,7 +181,7 @@ export const useSupportStats = () => {
 export const useCannedResponses = () => {
   return useQuery({
     queryKey: SUPPORT_KEYS.templates(),
-    queryFn: () => apiClient.getCannedResponses(),
+    queryFn: () => adminSupportApi.getCannedResponses(),
     staleTime: 300000, // 5 minutes - templates don't change often
   });
 };
@@ -199,7 +190,7 @@ export const useCannedResponses = () => {
 export const useCannedResponse = (id: string) => {
   return useQuery({
     queryKey: SUPPORT_KEYS.template(id),
-    queryFn: () => apiClient.getCannedResponse(id),
+    queryFn: () => adminSupportApi.getCannedResponse(id),
     enabled: !!id,
   });
 };
@@ -208,7 +199,7 @@ export const useCannedResponse = (id: string) => {
 export const useSupportAgents = () => {
   return useQuery({
     queryKey: SUPPORT_KEYS.agents(),
-    queryFn: () => apiClient.getSupportAgents(),
+    queryFn: () => adminSupportApi.getSupportAgents(),
     staleTime: 300000, // 5 minutes
   });
 };

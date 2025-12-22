@@ -34,11 +34,10 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Plus, UserX, UserCheck, Shield } from 'lucide-react';
+import { Plus, UserX, UserCheck, Shield } from 'lucide-react';
 import type { InternalUserListParams, CreateInternalUserRequest } from '@/types/admin';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 import { formatDistanceToNow } from 'date-fns';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 
 export const InternalUsersPage = () => {
