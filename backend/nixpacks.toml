@@ -7,15 +7,20 @@ nixPkgs = [
   "gcc",
   "pango",
   "cairo",
-  "gdk-pixbuf",
   "fontconfig",
   "freetype",
   "harfbuzz",
   "libffi",
-  "zlib",
-  "libjpeg",
-  "libpng",
-  "librsvg"
+  "zlib"
+]
+
+# Install additional dependencies via apt for WeasyPrint
+aptPkgs = [
+  "libpango-1.0-0",
+  "libpangocairo-1.0-0",
+  "libgdk-pixbuf2.0-0",
+  "libffi-dev",
+  "shared-mime-info"
 ]
 
 [phases.install]
