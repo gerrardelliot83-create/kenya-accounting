@@ -102,6 +102,10 @@ import type {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
+// Token storage keys
+const ACCESS_TOKEN_KEY = 'access_token';
+const REFRESH_TOKEN_KEY = 'refresh_token';
+
 class ApiClient {
   private client: AxiosInstance;
 
@@ -111,14 +115,15 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json',
       },
-      withCredentials: true, // Important for httpOnly cookies
     });
 
     // Request interceptor for adding auth token
     this.client.interceptors.request.use(
       (config) => {
-        // Token is in httpOnly cookie, so we don't need to add it manually
-        // But we can add other headers if needed
+        const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
         return config;
       },
       (error) => {
@@ -140,7 +145,9 @@ class ApiClient {
 
           // Handle 401 Unauthorized
           if (error.response.status === 401) {
-            // Clear auth state and redirect to login
+            // Clear tokens and redirect to login
+            localStorage.removeItem(ACCESS_TOKEN_KEY);
+            localStorage.removeItem(REFRESH_TOKEN_KEY);
             window.location.href = '/login';
           }
 
@@ -163,11 +170,26 @@ class ApiClient {
   // Auth endpoints
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await this.client.post<LoginResponse>('/auth/login', credentials);
+    // Store tokens
+    localStorage.setItem(ACCESS_TOKEN_KEY, response.data.accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refreshToken);
     return response.data;
   }
 
   async logout(): Promise<void> {
-    await this.client.post('/auth/logout');
+    try {
+      await this.client.post('/auth/logout');
+    } finally {
+      // Clear tokens
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+    }
+  }
+
+  // Clear tokens (for use when session expires)
+  clearTokens(): void {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
   }
 
   async changePassword(data: ChangePasswordRequest): Promise<void> {
