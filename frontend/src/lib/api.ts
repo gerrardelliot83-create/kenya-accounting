@@ -100,21 +100,21 @@ import type {
   RequestInfoRequest,
 } from '@/types/onboarding';
 
-// Get API URL from environment, with fallback for local development
-const getRawApiUrl = (): string => {
-  return import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
-};
-
-// Force HTTPS in production to prevent mixed content errors
+// Determine API URL based on current environment
 const getApiUrl = (): string => {
-  const rawUrl = getRawApiUrl();
+  // Check if we're running on the production frontend domain
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
 
-  // In production (non-localhost), always use HTTPS
-  if (!rawUrl.includes('localhost') && !rawUrl.includes('127.0.0.1')) {
-    return rawUrl.replace(/^http:\/\//i, 'https://');
+    // Production: Railway deployment
+    if (hostname === 'loyal-serenity-production.up.railway.app' ||
+        hostname === 'accounting.pakta.app') {
+      return 'https://kenya-accounting-production.up.railway.app/api/v1';
+    }
   }
 
-  return rawUrl;
+  // Development or fallback: use environment variable or localhost
+  return import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 };
 
 const API_URL = getApiUrl();
