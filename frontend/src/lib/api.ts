@@ -100,7 +100,24 @@ import type {
   RequestInfoRequest,
 } from '@/types/onboarding';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+// Get API URL from environment, with fallback for local development
+const getRawApiUrl = (): string => {
+  return import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+};
+
+// Force HTTPS in production to prevent mixed content errors
+const getApiUrl = (): string => {
+  const rawUrl = getRawApiUrl();
+
+  // In production (non-localhost), always use HTTPS
+  if (!rawUrl.includes('localhost') && !rawUrl.includes('127.0.0.1')) {
+    return rawUrl.replace(/^http:\/\//i, 'https://');
+  }
+
+  return rawUrl;
+};
+
+const API_URL = getApiUrl();
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = 'access_token';
