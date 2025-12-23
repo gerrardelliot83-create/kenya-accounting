@@ -100,6 +100,75 @@ import type {
   RequestInfoRequest,
 } from '@/types/onboarding';
 
+// ============================================================================
+// CASE TRANSFORMATION UTILITIES
+// Backend uses snake_case, frontend uses camelCase
+// ============================================================================
+
+/**
+ * Convert a snake_case string to camelCase
+ */
+const snakeToCamel = (str: string): string => {
+  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+};
+
+/**
+ * Convert a camelCase string to snake_case
+ */
+const camelToSnake = (str: string): string => {
+  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+};
+
+/**
+ * Recursively transform all keys in an object from snake_case to camelCase
+ */
+const transformKeysToCamel = (obj: unknown): unknown => {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(transformKeysToCamel);
+  }
+
+  if (typeof obj === 'object' && obj !== null) {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const camelKey = snakeToCamel(key);
+      result[camelKey] = transformKeysToCamel(value);
+    }
+    return result;
+  }
+
+  return obj;
+};
+
+/**
+ * Recursively transform all keys in an object from camelCase to snake_case
+ */
+const transformKeysToSnake = (obj: unknown): unknown => {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(transformKeysToSnake);
+  }
+
+  if (typeof obj === 'object' && obj !== null) {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const snakeKey = camelToSnake(key);
+      result[snakeKey] = transformKeysToSnake(value);
+    }
+    return result;
+  }
+
+  return obj;
+};
+
+// ============================================================================
+
 // Production API URL - hardcoded to ensure HTTPS
 const PRODUCTION_API_URL = 'https://kenya-accounting-production.up.railway.app/api/v1';
 
@@ -139,7 +208,8 @@ class ApiClient {
       },
     });
 
-    // Request interceptor for adding auth token, forcing HTTPS, and ensuring trailing slashes
+    // Request interceptor for adding auth token, forcing HTTPS, ensuring trailing slashes,
+    // and transforming request data from camelCase to snake_case
     this.client.interceptors.request.use(
       (config) => {
         // CRITICAL: Force HTTPS for all production requests
@@ -175,6 +245,12 @@ class ApiClient {
           }
         }
 
+        // Transform request body from camelCase to snake_case for backend
+        // Skip transformation for FormData (file uploads)
+        if (config.data && !(config.data instanceof FormData)) {
+          config.data = transformKeysToSnake(config.data);
+        }
+
         return config;
       },
       (error) => {
@@ -182,9 +258,15 @@ class ApiClient {
       }
     );
 
-    // Response interceptor for error handling
+    // Response interceptor for transforming data and error handling
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        // Transform response data from snake_case to camelCase
+        if (response.data) {
+          response.data = transformKeysToCamel(response.data);
+        }
+        return response;
+      },
       (error: AxiosError<ApiError>) => {
         if (error.response) {
           // Server responded with error
@@ -222,42 +304,14 @@ class ApiClient {
 
   // Auth endpoints
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    // Backend returns snake_case, so we need to type the raw response
-    interface BackendLoginResponse {
-      access_token: string;
-      refresh_token: string;
-      token_type: string;
-      user: {
-        id: string;
-        email: string;
-        role: string;
-        business_id?: string;
-        must_change_password: boolean;
-        first_name?: string;
-        last_name?: string;
-      };
-    }
+    // Response is auto-transformed from snake_case to camelCase by interceptor
+    const response = await this.client.post<LoginResponse>('/auth/login', credentials);
 
-    const response = await this.client.post<BackendLoginResponse>('/auth/login', credentials);
+    // Store tokens (now using camelCase field names after transformation)
+    localStorage.setItem(ACCESS_TOKEN_KEY, response.data.accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refreshToken);
 
-    // Store tokens (using snake_case field names from backend)
-    localStorage.setItem(ACCESS_TOKEN_KEY, response.data.access_token);
-    localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refresh_token);
-
-    // Transform to camelCase for frontend consumption
-    return {
-      accessToken: response.data.access_token,
-      refreshToken: response.data.refresh_token,
-      user: {
-        id: response.data.user.id,
-        email: response.data.user.email,
-        role: response.data.user.role as LoginResponse['user']['role'],
-        businessId: response.data.user.business_id,
-        mustChangePassword: response.data.user.must_change_password,
-        firstName: response.data.user.first_name,
-        lastName: response.data.user.last_name,
-      },
-    };
+    return response.data;
   }
 
   async logout(): Promise<void> {
@@ -277,50 +331,20 @@ class ApiClient {
   }
 
   async changePassword(data: ChangePasswordRequest): Promise<void> {
-    // Backend expects snake_case
-    await this.client.post('/auth/change-password', {
-      current_password: data.currentPassword,
-      new_password: data.newPassword,
-    });
+    // Request body is auto-transformed from camelCase to snake_case by interceptor
+    await this.client.post('/auth/change-password', data);
   }
 
   async getCurrentUser(): Promise<User> {
-    // Backend returns snake_case wrapped in { user: {...} }
-    interface BackendUserResponse {
-      user: {
-        id: string;
-        email: string;
-        role: string;
-        business_id?: string;
-        must_change_password: boolean;
-        first_name?: string;
-        last_name?: string;
-      };
-    }
-
-    const response = await this.client.get<BackendUserResponse>('/auth/me');
-
-    // Transform to camelCase
-    return {
-      id: response.data.user.id,
-      email: response.data.user.email,
-      role: response.data.user.role as User['role'],
-      businessId: response.data.user.business_id,
-      mustChangePassword: response.data.user.must_change_password,
-      firstName: response.data.user.first_name,
-      lastName: response.data.user.last_name,
-    };
+    // Response is auto-transformed from snake_case to camelCase by interceptor
+    const response = await this.client.get<{ user: User }>('/auth/me');
+    return response.data.user;
   }
 
   async refreshToken(): Promise<{ accessToken: string }> {
-    // Backend returns { access_token: string, token_type: string }
-    interface BackendRefreshResponse {
-      access_token: string;
-      token_type: string;
-    }
-
-    const response = await this.client.post<BackendRefreshResponse>('/auth/refresh');
-    return { accessToken: response.data.access_token };
+    // Response is auto-transformed from snake_case to camelCase by interceptor
+    const response = await this.client.post<{ accessToken: string; tokenType: string }>('/auth/refresh');
+    return { accessToken: response.data.accessToken };
   }
 
   // Contacts endpoints
