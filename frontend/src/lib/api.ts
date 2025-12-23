@@ -196,9 +196,11 @@ class ApiClient {
 
           // Handle 401 Unauthorized
           if (error.response.status === 401) {
-            // Clear tokens and redirect to login
+            // Clear tokens and auth state, then redirect to login
             localStorage.removeItem(ACCESS_TOKEN_KEY);
             localStorage.removeItem(REFRESH_TOKEN_KEY);
+            // Also clear Zustand persisted auth state to prevent rehydration loop
+            localStorage.removeItem('auth-storage');
             window.location.href = '/login';
           }
 
@@ -220,11 +222,42 @@ class ApiClient {
 
   // Auth endpoints
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await this.client.post<LoginResponse>('/auth/login', credentials);
-    // Store tokens
-    localStorage.setItem(ACCESS_TOKEN_KEY, response.data.accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refreshToken);
-    return response.data;
+    // Backend returns snake_case, so we need to type the raw response
+    interface BackendLoginResponse {
+      access_token: string;
+      refresh_token: string;
+      token_type: string;
+      user: {
+        id: string;
+        email: string;
+        role: string;
+        business_id?: string;
+        must_change_password: boolean;
+        first_name?: string;
+        last_name?: string;
+      };
+    }
+
+    const response = await this.client.post<BackendLoginResponse>('/auth/login', credentials);
+
+    // Store tokens (using snake_case field names from backend)
+    localStorage.setItem(ACCESS_TOKEN_KEY, response.data.access_token);
+    localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refresh_token);
+
+    // Transform to camelCase for frontend consumption
+    return {
+      accessToken: response.data.access_token,
+      refreshToken: response.data.refresh_token,
+      user: {
+        id: response.data.user.id,
+        email: response.data.user.email,
+        role: response.data.user.role as LoginResponse['user']['role'],
+        businessId: response.data.user.business_id,
+        mustChangePassword: response.data.user.must_change_password,
+        firstName: response.data.user.first_name,
+        lastName: response.data.user.last_name,
+      },
+    };
   }
 
   async logout(): Promise<void> {
@@ -244,17 +277,50 @@ class ApiClient {
   }
 
   async changePassword(data: ChangePasswordRequest): Promise<void> {
-    await this.client.post('/auth/change-password', data);
+    // Backend expects snake_case
+    await this.client.post('/auth/change-password', {
+      current_password: data.currentPassword,
+      new_password: data.newPassword,
+    });
   }
 
   async getCurrentUser(): Promise<User> {
-    const response = await this.client.get<User>('/auth/me');
-    return response.data;
+    // Backend returns snake_case wrapped in { user: {...} }
+    interface BackendUserResponse {
+      user: {
+        id: string;
+        email: string;
+        role: string;
+        business_id?: string;
+        must_change_password: boolean;
+        first_name?: string;
+        last_name?: string;
+      };
+    }
+
+    const response = await this.client.get<BackendUserResponse>('/auth/me');
+
+    // Transform to camelCase
+    return {
+      id: response.data.user.id,
+      email: response.data.user.email,
+      role: response.data.user.role as User['role'],
+      businessId: response.data.user.business_id,
+      mustChangePassword: response.data.user.must_change_password,
+      firstName: response.data.user.first_name,
+      lastName: response.data.user.last_name,
+    };
   }
 
   async refreshToken(): Promise<{ accessToken: string }> {
-    const response = await this.client.post<{ accessToken: string }>('/auth/refresh');
-    return response.data;
+    // Backend returns { access_token: string, token_type: string }
+    interface BackendRefreshResponse {
+      access_token: string;
+      token_type: string;
+    }
+
+    const response = await this.client.post<BackendRefreshResponse>('/auth/refresh');
+    return { accessToken: response.data.access_token };
   }
 
   // Contacts endpoints
