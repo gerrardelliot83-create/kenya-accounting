@@ -134,9 +134,15 @@ class ApiClient {
       },
     });
 
-    // Request interceptor for adding auth token and ensuring trailing slashes
+    // Request interceptor for adding auth token, forcing HTTPS, and ensuring trailing slashes
     this.client.interceptors.request.use(
       (config) => {
+        // CRITICAL: Force HTTPS for production requests
+        // This runs on EVERY request, ensuring http:// is always converted to https://
+        if (config.baseURL && config.baseURL.includes('kenya-accounting-production.up.railway.app')) {
+          config.baseURL = config.baseURL.replace(/^http:/i, 'https:');
+        }
+
         // Add auth token
         const token = localStorage.getItem(ACCESS_TOKEN_KEY);
         if (token) {
