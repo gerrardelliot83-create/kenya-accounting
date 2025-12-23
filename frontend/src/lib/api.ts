@@ -100,21 +100,26 @@ import type {
   RequestInfoRequest,
 } from '@/types/onboarding';
 
+// Production API URL - hardcoded to ensure HTTPS
+const PRODUCTION_API_URL = 'https://kenya-accounting-production.up.railway.app/api/v1';
+
 // Determine API URL based on current environment
 const getApiUrl = (): string => {
-  // Check if we're running on the production frontend domain
+  // In browser, check hostname
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
 
-    // Production: Railway deployment
-    if (hostname === 'loyal-serenity-production.up.railway.app' ||
-        hostname === 'accounting.pakta.app') {
-      return 'https://kenya-accounting-production.up.railway.app/api/v1';
+    // Local development
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
     }
+
+    // Any other hostname = production, use hardcoded HTTPS URL
+    return PRODUCTION_API_URL;
   }
 
-  // Development or fallback: use environment variable or localhost
-  return import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+  // Fallback for SSR/build time
+  return PRODUCTION_API_URL;
 };
 
 const API_URL = getApiUrl();
@@ -137,10 +142,19 @@ class ApiClient {
     // Request interceptor for adding auth token, forcing HTTPS, and ensuring trailing slashes
     this.client.interceptors.request.use(
       (config) => {
-        // CRITICAL: Force HTTPS for production requests
+        // CRITICAL: Force HTTPS for all production requests
         // This runs on EVERY request, ensuring http:// is always converted to https://
-        if (config.baseURL && config.baseURL.includes('kenya-accounting-production.up.railway.app')) {
+        // Only localhost/127.0.0.1 are allowed to use http://
+        const isLocalhost = (url: string) => url.includes('localhost') || url.includes('127.0.0.1');
+
+        // Fix baseURL
+        if (config.baseURL && !isLocalhost(config.baseURL)) {
           config.baseURL = config.baseURL.replace(/^http:/i, 'https:');
+        }
+
+        // Also fix the full URL if it's absolute (starts with http://)
+        if (config.url && config.url.startsWith('http://') && !isLocalhost(config.url)) {
+          config.url = config.url.replace(/^http:/i, 'https:');
         }
 
         // Add auth token
